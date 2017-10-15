@@ -1,17 +1,16 @@
 package main;
 
+import permissions.Permission;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 
 public class FolderLens {
 
-    List<File> ignoreList = new ArrayList<File>();
     private String lensDirection;
     private File sourceFolder;
     private File targetFolder;
@@ -26,7 +25,7 @@ public class FolderLens {
 
         String fileName = file.getName();
 
-        if(fileName.lastIndexOf(".")!=0) {
+        if (fileName.lastIndexOf(".") != 0) {
             return fileName.substring(fileName.lastIndexOf(".") + 1);
         }
 
@@ -42,9 +41,8 @@ public class FolderLens {
 
         for (File file : folder.listFiles()) {
 
-            if (!ignoreList.contains(file)) {
-
-                System.out.println(file.getPath());
+            if ((lensDirection.equals("get") && Permission.isReadable(file))
+                    || (lensDirection.equals("putback") && Permission.isWriteable(file))) {
 
                 if (file.isDirectory()) {
                     modifyFiles(file);
@@ -55,12 +53,9 @@ public class FolderLens {
                     if (getExtension(file).equals("csv")) {
 
                         CsvLens csv = new CsvLens(file.getPath(), newPath, lensDirection);
-                        csv.protectedColumns.add(0);
-                        csv.protectedColumns.add(3);
-                        csv.protectedColumns.add(7);
                         csv.modifyCsv();
 
-                    }else{
+                    } else {
                         try {
                             Files.copy(file.toPath(), new File(newPath).toPath(), REPLACE_EXISTING);
                         } catch (IOException e) {

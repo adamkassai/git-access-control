@@ -2,7 +2,9 @@ package main;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+import permissions.Permission;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,7 +13,6 @@ import java.util.List;
 
 public class CsvLens {
 
-    List<Integer> protectedColumns = new ArrayList<Integer>();
     private String lensDirection;
     private String sourceFile;
     private String targetFile;
@@ -22,8 +23,7 @@ public class CsvLens {
         this.targetFile = targetFile;
     }
 
-    public void modifyCsv()
-    {
+    public void modifyCsv() {
         if (lensDirection.equals("get")) {
             get(sourceFile, targetFile);
         } else if (lensDirection.equals("putback")) {
@@ -86,7 +86,7 @@ public class CsvLens {
             List<String> newRow = new ArrayList<String>();
 
             for (int i = 0; i < row.length; i++) {
-                if (!protectedColumns.contains(i)) {
+                if (Permission.isReadableColumn(new File(srcFile), i)) {
                     newRow.add(row[i]);
                 }
             }
@@ -105,10 +105,9 @@ public class CsvLens {
         List<String[]> originalList = readCSV(dstFile);
         List<String[]> newList = new ArrayList<String[]>();
 
-
         try {
 
-            if (list.size()!=originalList.size()) {
+            if (list.size() != originalList.size()) {
                 throw new Exception("You can't modify the number of rows in " + srcFile);
             }
 
@@ -123,14 +122,16 @@ public class CsvLens {
 
                 for (int j = 0; j < originalRow.length; j++) {
 
-                    if (protectedColumns.contains(j)) {
+                    if (!Permission.isReadableColumn(new File(srcFile), j)) {
                         newRow.add(originalRow[j]);
-                    }else {
+                    } else if (!Permission.isWriteableColumn(new File(srcFile), j)) {
+                        newRow.add(originalRow[j]);
+                        newIndex++;
+                    } else {
                         newRow.add(row[newIndex]);
                         newIndex++;
                     }
                 }
-
 
 
                 newList.add(newRow.toArray(new String[0]));
@@ -143,9 +144,6 @@ public class CsvLens {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
-
 
 
     }
