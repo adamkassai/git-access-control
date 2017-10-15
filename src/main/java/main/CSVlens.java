@@ -9,9 +9,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CSVlens {
+public class CsvLens {
 
     List<Integer> protectedColumns = new ArrayList<Integer>();
+    private String lensDirection;
+    private String sourceFile;
+    private String targetFile;
+
+    public CsvLens(String sourceFile, String targetFile, String lensDirection) {
+        this.lensDirection = lensDirection;
+        this.sourceFile = sourceFile;
+        this.targetFile = targetFile;
+    }
+
+    public void modifyCsv()
+    {
+        if (lensDirection.equals("get")) {
+            get(sourceFile, targetFile);
+        } else if (lensDirection.equals("putback")) {
+            putback(sourceFile, targetFile);
+        }
+    }
 
     private List<String[]> readCSV(String srcFile) {
 
