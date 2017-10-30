@@ -2,6 +2,8 @@ package main;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+import exceptions.IllegalEditException;
+import exceptions.IllegalRowNumberException;
 import permissions.Permission;
 
 import java.io.File;
@@ -23,7 +25,7 @@ public class CsvLens {
         this.targetFile = targetFile;
     }
 
-    public void modifyCsv() {
+    public void modifyCsv() throws IllegalEditException, IllegalRowNumberException {
         if (lensDirection.equals("get")) {
             get(sourceFile, targetFile);
         } else if (lensDirection.equals("putback")) {
@@ -99,16 +101,15 @@ public class CsvLens {
 
     }
 
-    public void putback(String srcFile, String dstFile) {
+    public void putback(String srcFile, String dstFile) throws IllegalRowNumberException, IllegalEditException {
 
         List<String[]> list = readCSV(srcFile);
         List<String[]> originalList = readCSV(dstFile);
         List<String[]> newList = new ArrayList<String[]>();
 
-        try {
 
             if (list.size() != originalList.size()) {
-                throw new Exception("You can't modify the number of rows in " + srcFile);
+                throw new IllegalRowNumberException(srcFile);
             }
 
             for (int i = 0; i < list.size(); i++) {
@@ -125,6 +126,9 @@ public class CsvLens {
                     if (!Permission.isReadableColumn(new File(srcFile), j)) {
                         newRow.add(originalRow[j]);
                     } else if (!Permission.isWriteableColumn(new File(srcFile), j)) {
+                        if (!originalRow[j].equals(row[newIndex])) {
+                            throw new IllegalEditException(srcFile, i, newIndex);
+                        }
                         newRow.add(originalRow[j]);
                         newIndex++;
                     } else {
@@ -141,9 +145,7 @@ public class CsvLens {
             writeCSV(newList, dstFile);
 
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
 
 
     }

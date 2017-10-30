@@ -1,5 +1,7 @@
 package main;
 
+import exceptions.IllegalEditException;
+import exceptions.IllegalRowNumberException;
 import permissions.Permission;
 
 import java.io.File;
@@ -32,12 +34,12 @@ public class FolderLens {
         return "";
     }
 
-    public void modifyFiles() {
+    public void modifyFiles() throws IllegalEditException, IllegalRowNumberException {
         modifyFiles(sourceFolder);
     }
 
 
-    public void modifyFiles(File folder) {
+    public void modifyFiles(File folder) throws IllegalEditException, IllegalRowNumberException {
 
         for (File file : folder.listFiles()) {
 
